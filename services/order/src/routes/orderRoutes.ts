@@ -1,8 +1,14 @@
 import express from 'express';
-import {createOrder, getOrderById} from "../controllers/orderController";
+import {createOrder, getOrderByUserId} from "../controllers/orderController";
+import {Database} from "../database";
 
 const router = express.Router();
-router.post('/orders', createOrder);
-router.get('/orders/user/:userId', getOrderById);
+
+const orderRoutes = (db: Database) => {
+    router.post('/orders', createOrder(db));
+    router.get('/orders/user/:userId', getOrderByUserId(db));
+
+    return router;
+};
 
 export default router;

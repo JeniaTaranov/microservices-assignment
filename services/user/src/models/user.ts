@@ -5,4 +5,5 @@ export interface NewUser {
 
 export interface User extends NewUser {
     id: string;
+    created_at: string;
 }

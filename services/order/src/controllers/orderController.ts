@@ -1,15 +1,21 @@
 import { Request, Response } from 'express';
-import { pool } from '../database';
+import { Database } from '../database';
 import { NewOrder, Order } from '../models/order';
 import { StatusCodes } from 'http-status-codes';
+import {ORDERS_COLUMNS} from "../constants";
 
-export const createOrder = async (req: Request, res: Response) => {
+export const createOrder = (db: Database) => async (req: Request, res: Response) => {
     const newOrder: NewOrder = req.body;
 
     try {
-        const result = await pool.query<Order>(
-            'INSERT INTO orders (userId, product, quantity, price, createdAt) VALUES ($1, $2, $3, $4, NOW()) RETURNING *',
-            [newOrder.userId, newOrder.product, newOrder.quantity, newOrder.price]
+        const result = await db.getPool().query<Order>(
+            `INSERT INTO orders ( +
+             ${ORDERS_COLUMNS.USER_ID}, 
+             ${ORDERS_COLUMNS.PRODUCT_NAME}, 
+             ${ORDERS_COLUMNS.AMOUNT}, 
+             ${ORDERS_COLUMNS.CREATED_AT}
+             ) VALUES ($1, $2, $3, NOW()) RETURNING *`,
+            [newOrder.userId, newOrder.product, newOrder.quantity]
         );
 
         // TODO: emit MQ event order.created here
@@ -22,16 +28,16 @@ export const createOrder = async (req: Request, res: Response) => {
     }
 };
 
-export const getOrderById = async (req: Request, res: Response) => {
+export const getOrderByUserId = (db: Database) =>async (req: Request, res: Response) => {
     const userId = parseInt(req.params.userId);
 
     try {
-        const result = await pool.query<Order>(
-            'SELECT * FROM orders WHERE userId = $1',
+        const result = await db.getPool().query<Order>(
+            `SELECT * FROM orders WHERE ${ORDERS_COLUMNS.USER_ID} = $1`,
             [userId]
         );
         if (result.rows.length === 0) {
-            res.status(StatusCodes.NOT_FOUND);
+            res.status(StatusCodes.NOT_FOUND).json({ error: 'Order not found' });
         }
         const order: Order = result.rows[0];
         res.json(order);
