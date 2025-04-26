@@ -4,7 +4,8 @@ import { StatusCodes } from 'http-status-codes';
 import {Database} from "../database";
 import {USERS_COLUMNS} from "../constants";
 
-export const createUser = (db: Database) => async (req: Request, res: Response) => {
+export const createUser = (db: Database) =>
+    async (req: Request, res: Response) => {
     const newUser: NewUser = req.body;
 
     try {
@@ -37,7 +38,7 @@ export const getUserById = (db: Database) =>
             res.status(StatusCodes.NOT_FOUND).json({ error: 'User not found' });
         }
         const user: User = result.rows[0];
-        return res.json(user);
+        res.json(user);
     } catch (err) {
         console.error(err);
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({error: 'Failed to get user'});

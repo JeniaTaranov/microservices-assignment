@@ -7,6 +7,8 @@ const router = express.Router();
 const userRoutes = (db: Database) => {
     router.post('/users', createUser(db));
     router.get('/users/:id', getUserById(db));
+
+    return router;
 }
 
 export default router;
