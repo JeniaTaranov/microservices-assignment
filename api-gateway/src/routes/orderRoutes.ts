@@ -1,25 +1,18 @@
 import express from "express";
 import { createOrder, getOrdersByUserId } from "../services/orderService";
 import authMiddleware from "../middleware/authMiddleware";
+import {StatusCodes} from "http-status-codes";
 
 const router = express.Router();
 
 router.post('/orders', authMiddleware, async (req, res) => {
-    try {
-        const response = await createOrder(req.body);
-        res.json(response.data);
-    } catch (error: any) {
-        res.status(500).json({ message: error.message });
-    }
+    const response = await createOrder(req.body);
+    res.json(response.data);
 });
 
 router.get('/orders/user/:userId', authMiddleware, async (req, res) => {
-    try {
-        const response = await getOrdersByUserId(req.params.userId);
-        res.json(response.data);
-    } catch (error: any) {
-        res.status(500).json({ message: error.message });
-    }
+    const response = await getOrdersByUserId(req.params.userId);
+    res.json(response.data);
 });
 
 export default router;

@@ -7,10 +7,22 @@ import {producer} from "../kafka";
 
 export const createOrder = (db: Database) => async (req: Request, res: Response) => {
     const newOrder: NewOrder = req.body;
+
+    if (!newOrder?.user_id || !newOrder?.product_name || !newOrder?.amount) {
+        res.status(StatusCodes.BAD_REQUEST).json({ error: 'Missing required fields: user_id, product_name, amount' });
+        return;
+    }
+
     try {
-        const userId = newOrder.user_id;
-        const productName = newOrder.product_name;
-        const amount = newOrder.amount;
+        const { user_id: userId, product_name: productName, amount } = newOrder;
+
+        const userExistsResult = await db.getPool().query<Order>(
+            `SELECT ${ORDERS_COLUMNS.USER_ID} FROM users WHERE ${ORDERS_COLUMNS.USER_ID} = $1`, [userId]
+        )
+        if (userExistsResult.rows.length == 0){
+            res.status(StatusCodes.BAD_REQUEST).json({error: 'Failed to create order for non existing user'});
+        }
+
         const result = await db.getPool().query<Order>(
             `INSERT INTO orders (
              ${ORDERS_COLUMNS.USER_ID}, 
@@ -22,12 +34,12 @@ export const createOrder = (db: Database) => async (req: Request, res: Response)
         );
 
         await producer.send({
-            topic: 'orders-log',
+            topic: 'orders.log',
             messages: [{ value: JSON.stringify({ userId, productName, amount })}],
         });
 
         const createdOrder: Order = result.rows[0];
-        res.status(StatusCodes.CREATED).json(createdOrder);
+        res.json(createdOrder);
     } catch (err) {
         console.error(err);
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({error: 'Failed to create order'});
@@ -47,7 +59,7 @@ export const getOrderByUserId = (db: Database) =>async (req: Request, res: Respo
             return;
         }
         const order: Order = result.rows[0];
-        res.status(StatusCodes.OK).json(order);
+        res.json(order);
     } catch (err) {
         console.error(err);
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({error: 'Failed to get order'});

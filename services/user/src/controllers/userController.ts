@@ -4,15 +4,17 @@ import { StatusCodes } from 'http-status-codes';
 import {Database} from "../database";
 import {USERS_COLUMNS} from "../constants";
 import {producer} from "../kafka";
-import stringify from 'safe-stable-stringify';
 
 export const createUser = (db: Database) =>
     async (req: Request, res: Response) => {
     const newUser: NewUser = req.body;
-    try {
-        const name = newUser.name;
-        const email = newUser.email;
+    if (!newUser?.name || !newUser?.email ) {
+        res.status(StatusCodes.BAD_REQUEST).json({ error: 'Missing required fields: name, email' });
+        return;
+    }
 
+    try {
+        const { name: name, email: email} = newUser;
         const result = await db.getPool().query<User>(
             `INSERT INTO users (
                    ${USERS_COLUMNS.NAME}, 
@@ -22,12 +24,12 @@ export const createUser = (db: Database) =>
         );
 
         await producer.send({
-            topic: 'users-log',
+            topic: 'users.log',
             messages: [{ value: JSON.stringify({ name, email })}],
         });
 
         const createdUser: User = result.rows[0];
-        res.status(StatusCodes.CREATED).json(createdUser);
+        res.json(createdUser);
     } catch (err) {
         console.error(err);
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({error: 'Failed to create user'});
@@ -44,6 +46,7 @@ export const getUserById = (db: Database) =>
 
         if (result.rows.length === 0) {
             res.status(StatusCodes.NOT_FOUND).json({ error: 'User not found' });
+            return;
         }
         const user: User = result.rows[0];
         res.json(user);
@@ -52,3 +55,17 @@ export const getUserById = (db: Database) =>
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({error: 'Failed to get user'});
     }
 };
+
+export const getUsers = (db: Database) =>
+    async (req: Request, res: Response) => {
+    try {
+        const result = await db.getPool().query<User>(
+            `SELECT ${USERS_COLUMNS.USER_ID} FROM users`
+        );
+
+        res.json(result.rows)
+    }catch (err) {
+        console.error(err);
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({error: 'Failed to get users amount'});
+    }
+}

@@ -23,7 +23,7 @@ describe('Order Service through Gateway', () => {
             .set('Authorization', `Bearer ${token}`)
             .send({
                 user_id: userId,
-                product_name: 'iPhone 15',
+                product_name: 'Skoda Octavia',
                 amount: 3
             });
 
@@ -54,4 +54,34 @@ describe('Order Service through Gateway', () => {
 
         expect(res.statusCode).toBe(StatusCodes.UNAUTHORIZED);
     });
+
+    it('should not create an order without product name', async () => {
+        const res = await request(GATEWAY_URL)
+            .post('/orders')
+            .set('Authorization', `Bearer ${token}`)
+            .send({
+                user_id: userId,
+                amount: 3
+            });
+
+        expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST);
+    });
+
+    it('should not create an order for non-existing id', async () => {
+        const usersRes = await request(GATEWAY_URL)
+            .get(`/users/`)
+            .set('Authorization', `Bearer ${token}`);
+        const userMaxId = usersRes.body.length;
+
+        const res = await request(GATEWAY_URL)
+            .post('/orders')
+            .set('Authorization', `Bearer ${token}`)
+            .send({
+                user_id: userMaxId + 1,
+                product_name: 'Lego',
+                amount: 3
+            });
+
+        expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST);
+    })
 });

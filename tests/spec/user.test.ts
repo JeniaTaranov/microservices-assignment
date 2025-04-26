@@ -29,4 +29,15 @@ describe('User Service through Gateway', () => {
 
         expect(res.statusCode).toBe(StatusCodes.UNAUTHORIZED);
     });
+
+    it('should not create user without a field', async () => {
+        const res = await request(GATEWAY_URL)
+            .post('/users')
+            .set('Authorization', `Bearer ${token}`)
+            .send({
+                name: 'John No Field',
+            });
+
+        expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST);
+    });
 });
