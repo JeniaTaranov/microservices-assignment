@@ -11,4 +11,4 @@ const orderRoutes = (db: Database) => {
     return router;
 };
 
-export default router;
+export default orderRoutes;

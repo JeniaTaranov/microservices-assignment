@@ -5,7 +5,7 @@ dotenv.config();
 
 export const JWT_SECRET = process.env.JWT_SECRET!;
 export const CREDENTIALS = {
-    username: process.env.ADMIN_USERNAME!, //should be his email
-    password: process.env.PASSWORD!,
+    username: process.env.ADMIN_USERNAME!,
+    password: process.env.ADMIN_PASSWORD!,
     id: uuidv4()!
 };

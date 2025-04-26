@@ -7,7 +7,6 @@ import {USERS_COLUMNS} from "../constants";
 export const createUser = (db: Database) =>
     async (req: Request, res: Response) => {
     const newUser: NewUser = req.body;
-
     try {
         const result = await db.getPool().query<User>(
             `INSERT INTO users (

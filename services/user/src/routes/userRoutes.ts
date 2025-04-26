@@ -11,4 +11,4 @@ const userRoutes = (db: Database) => {
     return router;
 }
 
-export default router;
+export default userRoutes;
