@@ -2,6 +2,7 @@ import express from 'express';
 import orderRoutes from "./routes/orderRoutes";
 import dotenv from 'dotenv';
 import {Database} from "./database";
+import {connectKafka} from "./kafka";
 
 dotenv.config();
 
@@ -11,6 +12,8 @@ app.use(express.json());
 const db = new Database();
 
 async function startServer() {
+    await connectKafka();
+
     await db.initOrdersTable();
     console.log('Orders table initialized');
 
@@ -21,5 +24,7 @@ async function startServer() {
     })
 }
 
-startServer();
+startServer().catch(err => {
+    console.error('Error starting server:', err);
+});
 

@@ -3,18 +3,29 @@ import { NewUser, User } from '../models/user';
 import { StatusCodes } from 'http-status-codes';
 import {Database} from "../database";
 import {USERS_COLUMNS} from "../constants";
+import {producer} from "../kafka";
+import stringify from 'safe-stable-stringify';
 
 export const createUser = (db: Database) =>
     async (req: Request, res: Response) => {
     const newUser: NewUser = req.body;
     try {
+        const name = newUser.name;
+        const email = newUser.email;
+
         const result = await db.getPool().query<User>(
             `INSERT INTO users (
                    ${USERS_COLUMNS.NAME}, 
                    ${USERS_COLUMNS.EMAIL}
             ) VALUES ($1, $2) RETURNING *`,
-            [newUser.name, newUser.email]
+            [name, email]
         );
+
+        await producer.send({
+            topic: 'users-log',
+            messages: [{ value: JSON.stringify({ name, email })}],
+        });
+
         const createdUser: User = result.rows[0];
         res.status(StatusCodes.CREATED).json(createdUser);
     } catch (err) {
@@ -30,8 +41,6 @@ export const getUserById = (db: Database) =>
             `SELECT * FROM users WHERE ${USERS_COLUMNS.USER_ID} = $1`,
             [req.params.id]
         );
-
-        // TODO: emit MQ event user.created here
 
         if (result.rows.length === 0) {
             res.status(StatusCodes.NOT_FOUND).json({ error: 'User not found' });

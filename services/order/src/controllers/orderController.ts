@@ -3,10 +3,14 @@ import { Database } from '../database';
 import { NewOrder, Order } from '../models/order';
 import { StatusCodes } from 'http-status-codes';
 import {ORDERS_COLUMNS} from "../constants";
+import {producer} from "../kafka";
 
 export const createOrder = (db: Database) => async (req: Request, res: Response) => {
     const newOrder: NewOrder = req.body;
     try {
+        const userId = newOrder.user_id;
+        const productName = newOrder.product_name;
+        const amount = newOrder.amount;
         const result = await db.getPool().query<Order>(
             `INSERT INTO orders (
              ${ORDERS_COLUMNS.USER_ID}, 
@@ -14,10 +18,13 @@ export const createOrder = (db: Database) => async (req: Request, res: Response)
              ${ORDERS_COLUMNS.AMOUNT}, 
              ${ORDERS_COLUMNS.CREATED_AT}
              ) VALUES ($1, $2, $3, NOW()) RETURNING *`,
-            [newOrder.user_id, newOrder.product_name, newOrder.amount]
+            [userId, productName, amount]
         );
 
-        // TODO: emit MQ event order.created here
+        await producer.send({
+            topic: 'orders-log',
+            messages: [{ value: JSON.stringify({ userId, productName, amount })}],
+        });
 
         const createdOrder: Order = result.rows[0];
         res.status(StatusCodes.CREATED).json(createdOrder);

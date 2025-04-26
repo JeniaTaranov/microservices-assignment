@@ -14,6 +14,7 @@ Services will be available at:
 
 Running tests: 
 $ npm install
+inside tests folder, run: 
 $ npm run test
 
 Environment Variables
