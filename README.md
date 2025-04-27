@@ -4,9 +4,8 @@ Microservices System: User, Order, Auth, Gateway
 How to start?
 - You need to have Docker and Docker Compose installed
 
-How to run the system?
-1. Set the environmental variable in .env file under the root directory:
-   DATABASE_URL= postgres://user:password@postgres:5432/microservices_db
+How to run the system? From the root - 
+1. $ init.sh
 2. Run the following comment in the terminal root directory: 
 $ docker-compose up --build
 

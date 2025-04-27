@@ -48,7 +48,7 @@ services:
 
   user-service:
     build:
-      context: ./services/user
+      context: user-service
     container_name: user-service
     restart: always
     environment:
@@ -63,7 +63,7 @@ services:
 
   order-service:
     build:
-      context: ./services/order
+      context: order-service
     container_name: order-service
     restart: always
     environment:
@@ -77,7 +77,7 @@ services:
     command: npm run dev
 
   auth-service:
-    build: ./services/auth
+    build: auth-service
     container_name: auth-service
     restart: always
     ports:
