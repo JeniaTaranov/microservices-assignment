@@ -34,7 +34,7 @@ export const createOrder = (db: Database) => async (req: Request, res: Response)
         );
 
         await producer.send({
-            topic: 'orders.log',
+            topic: 'orders-log',
             messages: [{ value: JSON.stringify({ userId, productName, amount })}],
         });
 

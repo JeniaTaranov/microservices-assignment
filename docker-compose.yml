@@ -43,8 +43,8 @@ services:
     command:
       - |
         sleep 15 &&
-        kafka-topics --create --if-not-exists --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1 --topic user.created &&
-        kafka-topics --create --if-not-exists --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1 --topic order.created
+        kafka-topics --create --if-not-exists --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1 --topic user-created &&
+        kafka-topics --create --if-not-exists --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1 --topic order-created
 
   user-service:
     build:
@@ -56,7 +56,7 @@ services:
       KAFKA_BROKER: kafka:9092
     depends_on:
       - postgres
-      - kafka
+      - kafka-init
     ports:
       - '3001:3001'
     command: npm run dev
@@ -71,7 +71,7 @@ services:
       KAFKA_BROKER: kafka:9092
     depends_on:
       - postgres
-      - kafka
+      - kafka-init
     ports:
       - '3002:3002'
     command: npm run dev
@@ -88,6 +88,7 @@ services:
       ADMIN_PASSWORD: password
     depends_on:
       - postgres
+      - kafka-init
     command: npm run dev
 
   api-gateway:
