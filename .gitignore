@@ -17,10 +17,6 @@ logs/
 .env
 .env.*
 
-# Docker
-**/Dockerfile
-**/docker-compose.yml
-
 # VS Code
 .vscode/
 

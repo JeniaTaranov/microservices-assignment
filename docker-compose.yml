@@ -1,0 +1,109 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: microservices_db
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  kafka:
+    image: apache/kafka-native:latest
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_NODE_ID: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENERS: PLAINTEXT://kafka:9092,CONTROLLER://kafka:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: [ "CMD", "bash", "-c", "nc -z kafka 9092" ]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+
+  kafka-init:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - kafka
+    entrypoint: [ "/bin/sh", "-c" ]
+    command:
+      - |
+        sleep 15 &&
+        kafka-topics --create --if-not-exists --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1 --topic user.created &&
+        kafka-topics --create --if-not-exists --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1 --topic order.created
+
+  user-service:
+    build:
+      context: ./services/user
+    container_name: user-service
+    restart: always
+    environment:
+      DATABASE_URL: postgres://user:password@postgres:5432/microservices_db
+      KAFKA_BROKER: kafka:9092
+    depends_on:
+      - postgres
+      - kafka
+    ports:
+      - '3001:3001'
+    command: npm run dev
+
+  order-service:
+    build:
+      context: ./services/order
+    container_name: order-service
+    restart: always
+    environment:
+      DATABASE_URL: postgres://user:password@postgres:5432/microservices_db
+      KAFKA_BROKER: kafka:9092
+    depends_on:
+      - postgres
+      - kafka
+    ports:
+      - '3002:3002'
+    command: npm run dev
+
+  auth-service:
+    build: ./services/auth
+    container_name: auth-service
+    restart: always
+    ports:
+      - '3003:3003'
+    environment:
+      - JWT_SECRET=your_secret_key
+    depends_on:
+      - postgres
+    command: npm run dev
+
+  api-gateway:
+    build: api-gateway
+    container_name: api-gatway
+    restart: always
+    ports:
+      - '3000:3000'
+    environment:
+      - USER_SERVICE_URL=http://user-service:3001
+      - ORDER_SERVICE_URL=http://order-service:3002
+      - AUTH_SERVICE_URL=http://auth-service:3003
+      - JWT_SECRET=your_secret_key
+    depends_on:
+      - user-service
+      - order-service
+      - auth-service
+    command: npm run dev
+
+volumes:
+  postgres-data:
