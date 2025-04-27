@@ -5,6 +5,9 @@ How to start?
 - You need to have Docker and Docker Compose installed
 
 How to run the system?
+1. Set the environmental variable in .env file under the root directory:
+   DATABASE_URL=postgresql://postgres:postgres@postgres:5432/microservices
+2. Run the following comment in the terminal root directory: 
 $ docker-compose up --build
 
 Services will be available at:
@@ -20,9 +23,6 @@ $ npm run test
 Environment Variables
 
 Common variables (set via Docker Compose or .env):
-JWT_SECRET=your_secret_key
-DATABASE_URL=postgresql://postgres:postgres@postgres:5432/microservices
-RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
 
 Notes
 
