@@ -6,7 +6,7 @@ How to start?
 
 How to run the system?
 1. Set the environmental variable in .env file under the root directory:
-   DATABASE_URL=postgresql://postgres:postgres@postgres:5432/microservices
+   DATABASE_URL= postgres://user:password@postgres:5432/microservices_db
 2. Run the following comment in the terminal root directory: 
 $ docker-compose up --build
 

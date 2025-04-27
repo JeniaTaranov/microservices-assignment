@@ -83,9 +83,9 @@ services:
     ports:
       - '3003:3003'
     environment:
-      - JWT_SECRET=your_secret_key
-      - ADMIN_USERNAME=admin
-      - ADMIN_PASSWORD=password
+      JWT_SECRET: your_secret_key
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: password
     depends_on:
       - postgres
     command: npm run dev
@@ -97,10 +97,10 @@ services:
     ports:
       - '3000:3000'
     environment:
-      - USER_SERVICE_URL=http://user-service:3001
-      - ORDER_SERVICE_URL=http://order-service:3002
-      - AUTH_SERVICE_URL=http://auth-service:3003
-      - JWT_SECRET=your_secret_key
+      USER_SERVICE_URL: http://user-service:3001
+      ORDER_SERVICE_URL: http://order-service:3002
+      AUTH_SERVICE_URL: http://auth-service:3003
+      JWT_SECRET: your_secret_key
     depends_on:
       - user-service
       - order-service
