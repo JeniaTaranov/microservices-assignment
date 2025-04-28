@@ -24,7 +24,7 @@ export const createUser = (db: Database) =>
         );
 
         await producer.send({
-            topic: 'users-log',
+            topic: 'user-created',
             messages: [{ value: JSON.stringify({ name, email })}],
         });
 
