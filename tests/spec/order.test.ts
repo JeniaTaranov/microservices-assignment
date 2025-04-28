@@ -68,16 +68,13 @@ describe('Order Service through Gateway', () => {
     });
 
     it('should not create an order for non-existing id', async () => {
-        const usersRes = await request(GATEWAY_URL)
-            .get(`/users/`)
-            .set('Authorization', `Bearer ${token}`);
-        const userMaxId = usersRes.body.length;
+        const invalidUserId = 9999999;
 
         const res = await request(GATEWAY_URL)
             .post('/orders')
             .set('Authorization', `Bearer ${token}`)
             .send({
-                user_id: userMaxId + 1,
+                user_id: invalidUserId,
                 product_name: 'Lego',
                 amount: 3
             });
