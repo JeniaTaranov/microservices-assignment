@@ -12,7 +12,7 @@ $ docker-compose up --build
 Services will be available at:
 * API Gateway: http://localhost:3000
 * Auth Service: http://localhost:3003
-* MQ //todo
+* MQ: http://localhost:29092
 
 Running tests: 
 $ npm install
